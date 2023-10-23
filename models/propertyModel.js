@@ -49,10 +49,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      areaInSquareFeet: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-      },
       numBedrooms: {
         type: DataTypes.STRING,
         allowNull: false,

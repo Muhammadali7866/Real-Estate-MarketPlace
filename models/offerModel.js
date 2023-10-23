@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
   }
   Offer.init(
     {
-      clientId: {},
       offerAmount: {
         type: DataTypes.STRING,
         allowNull: false,

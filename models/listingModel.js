@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Listing.belongsToMany(models.Property, { foreignKey: "propertyId" });
-      Listing.belongsToMany(models.ListingType, {
+      Listing.belongsTo(models.Property, { foreignKey: "propertyId" });
+      Listing.belongsTo(models.ListingType, {
         foreignKey: "listingTypeId",
       });
-      Listing.belongsToMany(models.ListingStatus, {
+      Listing.belongsTo(models.ListingStatus, {
         foreignKey: "listingStatusId",
       });
       // one listing
@@ -27,7 +27,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       creatingDate: {
         type: DataTypes.DATE,
-        allowNull: false,
       },
     },
     {
