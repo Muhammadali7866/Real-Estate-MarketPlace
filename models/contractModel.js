@@ -15,7 +15,9 @@ module.exports = (sequelize, DataTypes) => {
       // many contracts belongs to one listing type
       Contract.belongsTo(models.ListingType, { foreignKey: "listingTypeId" });
       // many contracts belongs to one employee
-      Contract.belongsTo(models.Employee, { foreignKey: "employeeId" });
+      Contract.belongsTo(models.Employee, {
+        foreignKey: "responsibleEmployeeId",
+      });
       // many contracts belongs to one Client
       Contract.belongsTo(models.Client, { foreignKey: "clientId" });
       // Many Contracts belongs one contract status

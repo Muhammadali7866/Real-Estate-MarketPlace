@@ -11,9 +11,11 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Employee.belongsToMany(models.Property, {
         through: "propertyEmployee",
+        foreignKey: "employeeId",
+      });
+      Employee.hasMany(models.Inspection, {
         foreignKey: "ResponsibleEmployeeId",
       });
-      Employee.hasMany(models.Inspection, { foreignKey: "employeeId" });
 
       // one employee has many contracts
       Employee.hasMany(models.Contract, {

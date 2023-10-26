@@ -10,7 +10,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Inspection.belongsTo(models.Property, { foreignKey: "propertyId" });
-      Inspection.belongsTo(models.Employee, { foreignKey: "employeeId" });
+      Inspection.belongsTo(models.Employee, {
+        foreignKey: "ResponsibleEmployeeId",
+      });
 
       // Inspecton can have many client
       Inspection.belongsToMany(models.Client, {

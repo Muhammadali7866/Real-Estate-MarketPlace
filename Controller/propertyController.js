@@ -1,5 +1,12 @@
 const express = require("express");
-const { Property, Feature, PropertyFeature } = require("../models/");
+const {
+  Property,
+  Feature,
+  PropertyFeature,
+  propertyEmployee,
+  sequelize,
+  Employee,
+} = require("../models/");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
@@ -7,63 +14,100 @@ const AppError = require("../utils/appError");
 
 // create Property
 
-const createProperty = catchAsync(async (req, res, next) => {
-  // 1) Destructure the relevent infrmation from the body
+const createProperty = async (req, res, next) => {
+  // apply transaction
+  // start transaction from connection and store it to the variable
+  const t = await sequelize.transaction();
 
-  const {
-    address1,
-    address2,
-    city,
-    areaInSquareFeet,
-    numBathrooms,
-    numBedrooms,
-    numCarspaces,
-    contact,
-    price,
-    description,
-    propertyTypeId,
-    listingTypeId,
-    featuresIds,
-  } = req.body;
+  try {
+    // 1) Destructure the relevent infrmation from the body
 
-  //   2)create a new property record in database using relevent information
-  // 2) Create a new property record in the database using relevant information
-  const property = await Property.create({
-    address1,
-    address2,
-    city,
-    areaInSquareFeet,
-    numBathrooms,
-    numBedrooms,
-    numCarspaces,
-    contact,
-    price,
-    description,
-    propertyTypeId,
-    listingTypeId,
-  });
-  if (!property) {
-    return next(
-      new AppError("There is an error while creating the property", 500)
-    ); //internel server error
-  }
+    const {
+      address1,
+      address2,
+      city,
+      areaInSquareFeet,
+      numBathrooms,
+      numBedrooms,
+      numCarspaces,
+      contact,
+      price,
+      description,
+      propertyTypeId,
+      listingTypeId,
+      featuresIds,
+      employeeIds,
+      roletypeIds,
+    } = req.body;
 
-  // add Features to Property
-  // const ids = featuresIds.split(",");
-  featuresIds.forEach(async (featureId) => {
-    await PropertyFeature.create({
-      propertyId: property.id,
-      featureId: featureId,
+    //   2)create a new property record in database using relevent information
+    // 2) Create a new property record in the database using relevant information
+    const property = await Property.create(
+      {
+        address1,
+        address2,
+        city,
+        areaInSquareFeet,
+        numBathrooms,
+        numBedrooms,
+        numCarspaces,
+        contact,
+        price,
+        description,
+        propertyTypeId,
+        listingTypeId,
+      },
+      { transaction: t }
+    );
+    if (!property) {
+      await t.rollback();
+      return next(
+        new AppError("There is an error while creating the property", 500)
+      ); //internel server error
+    }
+
+    // add Features to Property
+    // const ids = featuresIds.split(",");
+    const propertyFeatureArr = [];
+    featuresIds.forEach(async (featureId) => {
+      propertyFeatureArr.push({
+        propertyId: property.id,
+        featureId: featureId,
+      });
     });
-  });
 
-  //   3) display the success reponse to the user
-  res.status(201).json({
-    status: "Success",
-    message: "proeprty record is created succesfully",
-    property,
-  });
-});
+    await PropertyFeature.bulkCreate(propertyFeatureArr, { transaction: t });
+
+    // assign emplyee to trhe property
+    await propertyEmployee.create(
+      {
+        propertyId: property.id,
+        employeeId: employeeIds,
+        roleTypeId: roletypeIds,
+        startDate: new Date("2023-10-23"),
+        endDate: new Date("2023-10-27"),
+      },
+      { transaction: t }
+    );
+
+    // if the execution reaches at the line then no error is thrown
+    // we commit the transaction
+    await t.commit();
+
+    //   3) display the success reponse to the user
+    res.status(201).json({
+      status: "Success",
+      message: "proeprty record is created succesfully",
+      property,
+    });
+  } catch (error) {
+    await t.rollback(); //if the error display then rollback the transaction
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 // read All the property records
 
@@ -153,6 +197,12 @@ const updateProperty = catchAsync(async (req, res, next) => {
   // 6) update the property back to the database
   await property.save();
 
+  // 7) first delete  for the property
+  const employee = await propertyEmployee.destroy({
+    where: {
+      propertyId: property.id,
+    },
+  });
   // send the success resposne
   res.status(200).json({
     status: "success",
@@ -203,7 +253,64 @@ const uploadImage = catchAsync(async (req, res, next) => {
   });
 });
 
-// adding features to the property
+// Retrive a list of eployess associated with property
+const allEmployeeAssociateProperty = catchAsync(async (req, res, next) => {
+  const employees = await Property.findAll({
+    where: { id: req.params.id },
+    include: Employee,
+  });
+  res.status(200).json({
+    message: "ALL the employees associated with property",
+    status: "success",
+    data: { employees },
+  });
+});
+
+// remove an employee from the property
+// const deleteEmployeeProperty = catchAsync(async (req, res, next) => {
+//   const { employeeId } = req.body;
+//   const employee = await Property.findAll({
+//     where: { id: req.params.id },
+//     include: Employee,
+//     where: { id: req.params.id },
+//   });
+
+//   res.status(200).json({
+//     employee,
+//   });
+// });
+
+const deleteEmployeeProperty = catchAsync(async (req, res, next) => {
+  const { employeeId } = req.body;
+
+  const employee = await propertyEmployee.findOne({
+    where: { propertyId: req.params.id, employeeId: employeeId },
+  });
+  if (!employee) {
+    return next(new AppError("There is no property with that id", 404));
+  }
+  await employee.destroy();
+
+  res.status(200).json({
+    status: "success",
+    data: null,
+  });
+});
+
+// update propertyEmployee
+const updatePropertyEmployeeRole = catchAsync(async (req, res, next) => {
+  const propertyID = req.params.id;
+  const { roleTypeId } = req.body;
+  const propertyemployee = await propertyEmployee.findOne({
+    where: { propertyId: req.params.id },
+  });
+  propertyemployee.roleTypeId = roleTypeId;
+  await propertyemployee.save();
+  return res.status(201).json({
+    status: "success",
+    message: "propertyEMployee is updated succesfully",
+  });
+});
 
 module.exports = {
   createProperty,
@@ -212,4 +319,7 @@ module.exports = {
   updateProperty,
   deleteProperty,
   uploadImage,
+  allEmployeeAssociateProperty,
+  deleteEmployeeProperty,
+  updatePropertyEmployeeRole,
 };

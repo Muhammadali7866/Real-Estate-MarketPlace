@@ -26,4 +26,20 @@ router.post(
   propertyController.uploadImage
 );
 
+// all employess associated with property
+router.get(
+  "/allEmployeeAssociateProperty/:id",
+  propertyController.allEmployeeAssociateProperty
+);
+router.delete(
+  "/deleteEmployeeProperty/:id",
+  propertyController.deleteEmployeeProperty
+);
+
+// update property EMployee
+router.patch(
+  "/updatePropertyEmployeeRole/:id",
+  propertyController.updatePropertyEmployeeRole
+);
+
 module.exports = router;

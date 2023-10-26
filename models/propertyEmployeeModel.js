@@ -9,6 +9,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      // realtion between the propertyEmployee and roleTYpe
+      propertyEmployee.belongsTo(models.roleType, { foreignKey: "roleTypeId" });
     }
   }
   propertyEmployee.init(
