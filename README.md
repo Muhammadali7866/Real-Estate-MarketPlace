@@ -24,13 +24,13 @@ Comprehensive Database: The system includes a carefully organized database that 
 ## Installation
 
 
-first the clone directory in your vs code
+First the clone directory in your vs code
 ```bash
   npm install 
 ```
-```bash
+
   Go to the config file and enter your database information 
-```
+
     
 ```bash
   npm run start
