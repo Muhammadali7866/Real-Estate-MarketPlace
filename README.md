@@ -1,7 +1,7 @@
 
 # Real Estate MarketPlace
 
-Versatile Solution: Our Property Management System is a user-friendly tool designed to transform the way you manage real estate.
+Solution: Our Property Management System is a user-friendly tool designed to transform the way you manage real estate.
 
 Comprehensive Database: The system includes a carefully organized database that covers everything from property details (address, type, size) to employee roles and client interactions.
 
@@ -16,10 +16,7 @@ Comprehensive Database: The system includes a carefully organized database that 
 - User-Friendly Functionality: It's easy to manage property listings, track employee roles, schedule inspections, record client offers, and handle contracts.
 
 ## Database Design 
-
-
-
-
+![Untitled](https://github.com/Muhammadali7866/Real-State-/assets/73196575/1159b92c-65d0-4e13-8f08-72ff1fcdb4f6)
 
 
 
